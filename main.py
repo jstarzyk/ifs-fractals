@@ -31,6 +31,8 @@ class Fractal:
 class FractalGenerator(QWidget):
     def __init__(self, fractal):
         super().__init__()
+        # self.activated = False
+        self.activated = True
         self.fractal = fractal
         self.x = np.random.rand()
         self.y = np.random.rand()
@@ -39,37 +41,56 @@ class FractalGenerator(QWidget):
         self.setFixedSize(self.width, self.height)
         # rec = QApplication.desktop().availableGeometry()
         # r = QDesktopWidget.size()
-        # self.image = QImage(self.width, self.height, QImage.Format_Mono)
-        # self.image.fill(1)
+        self.image = QImage(self.width, self.height, QImage.Format_Mono)
+        self.image.fill(1)
         self.painter = QPainter(self)
+        # self.scene = QGraphicsScene()
+        # self.view = QGraphicsView()
+        # self.view.setScene(self.scene)
+        # self.view.setViewport(QOpenGLWidget())
+
         # self.painter.begin(self)
         # self.painter.fillRect(self.rect(), QBrush(QColor(255, 255, 255)))
         # self.painter.end()
         self.show()
         # self.painter.setRenderHint(QPainter.Antialiasing, False)
 
+    def set_activated(self, value):
+        self.activated = value
+
     def iterate(self):
-        # for i in range(0, 100):
-        for i in range(0, 1):
+        # print("iter")
+        # self.u
+        # self.painter.save()
+        for i in range(0, 100):
+        # for i in range(0, 1):
             rule = self.fractal.get_rule()
             x = self.x * rule['a'] + self.y * rule['b'] + rule['tx']
             y = self.x * rule['c'] + self.y * rule['d'] + rule['ty']
             self.x = x
             self.y = y
             self.plot(i)
-
-        QTimer.singleShot(100, self.iterate)
+        # self.painter.drawPixmap(self.rect(), QPixmap(self.image))
+        # if not self.activated:
+        #     # self.image.fill(1)
+        #     return
+        # self.update()
+        # self.iterate()
+        # self.painter.restore()
+        # QTimer.singleShot(100, self.iterate)
 
     def plot(self, i):
         # x = int(self.x)
-        x = int(self.x * 350) + int(self.width / 2)
+        x2 = int(self.x * 350) + int(self.width / 2)
         # x = int(self.x * 350)
         # y = int(self.y)
-        y = int(-self.y * 350) + self.height
+        y2 = int(-self.y * 350) + self.height
         # y = int(-self.y * 350)
         # print(str(i) + ': (' + str(x) + ', ' + str(y) + ')')
-        self.painter.drawPoint(x, y)
-        # self.image.setPixel(x, y, 0)
+        # self.painter.drawPoint(x2, y2)
+        # self.scene.addRect().drawPoint(x2, y2)
+        # self.image.d
+        self.image.setPixel(x2, y2, 0)
         # self.image.setPixel(200, 200, 0)
         # self.painter.drawPoint(200, 200)
         # self.image.setPixel(201, 200, 0)
@@ -80,14 +101,27 @@ class FractalGenerator(QWidget):
         # self.painter.drawPixmap(self.rect(), QPixmap(self.image))
 
     def paintEvent(self, event):
+        # if not self.activated:
+        #     self.image.fill(1)
+        #     return
+
         self.painter.begin(self)
         # self.painter.translate(self.width / 2, self.height / 2)
         # self.painter.begin(self.image)
         # self.image.fill(0)
-        self.painter.fillRect(self.rect(), QBrush(QColor(255, 255, 255)))
-        self.painter.setPen(QColor(0, 0, 0))
-        self.iterate()
+        # self.painter.fillRect(self.rect(), QBrush(QColor(255, 255, 255)))
+        # self.painter.setPen(QColor(0, 0, 0))
+        # self.painter.restore()
+        if self.activated:
+            # self.image.fill(1)
+            self.iterate()
+            self.painter.drawPixmap(self.rect(), QPixmap(self.image))
+            self.update()
+        else:
+            self.image.fill(1)
+            self.painter.drawPixmap(self.rect(), QPixmap(self.image))
         # self.plot()
+        # self.painter.restore()
         self.painter.end()
         # self.update()
         # self.painter.drawPixmap(self.rect(), QPixmap.fromImage(QImage('newton.png')))
@@ -115,7 +149,6 @@ def get_fractals(input_file):
 
     return result
 
-
 class IFSFractals(QMainWindow):
     def __init__(self, input_file, parent=None):
         super(IFSFractals, self).__init__(parent)
@@ -127,6 +160,7 @@ class IFSFractals(QMainWindow):
         #
         for fractal in self.fractals:
             drawing = FractalGenerator(fractal)
+            drawing.activated = True
             self.drawings.addWidget(drawing)
 
         app_layout = QHBoxLayout()
@@ -138,12 +172,13 @@ class IFSFractals(QMainWindow):
         options_layout.setAlignment(Qt.AlignTop)
 
         # combo_box, stacked_widget = parse_json('data.json')
-        combo_box, stacked_widget = self.get_widgets()
-        combo_box.activated.connect(stacked_widget.setCurrentIndex)
-        combo_box.activated.connect(self.drawings.setCurrentIndex)
+        self.combo_box, self.stacked_widget = self.get_widgets()
+        self.combo_box.activated.connect(self.stacked_widget.setCurrentIndex)
+        # self.combo_box.activated.connect(self.handle_switch)
+        self.combo_box.activated.connect(self.drawings.setCurrentIndex)
 
-        options_layout.addWidget(combo_box)
-        options_layout.addWidget(stacked_widget)
+        options_layout.addWidget(self.combo_box)
+        options_layout.addWidget(self.stacked_widget)
         options_widget.setLayout(options_layout)
 
         panel.setWidget(options_widget)
@@ -155,6 +190,13 @@ class IFSFractals(QMainWindow):
         # self.setCentralWidget(f)
         self.addDockWidget(Qt.RightDockWidgetArea, panel)
         self.setLayout(app_layout)
+
+    def handle_switch(self, index):
+        self.drawings[index].activated = True
+        self.stacked_widget.setCurrentIndex(index)
+        for i in range(len(self.drawings)):
+            if i != index:
+                self.drawings[i].activated = False
 
     def get_widgets(self):
         stacked_widget = QStackedWidget()
