@@ -34,39 +34,62 @@ class FractalGenerator(QWidget):
         self.fractal = fractal
         self.x = np.random.rand()
         self.y = np.random.rand()
-        self.setFixedSize(800, 800)
+        self.width = 800
+        self.height = 800
+        self.setFixedSize(self.width, self.height)
         # rec = QApplication.desktop().availableGeometry()
         # r = QDesktopWidget.size()
-        self.image = QImage(800, 800, QImage.Format_Mono)
-        self.image.fill(1)
+        # self.image = QImage(self.width, self.height, QImage.Format_Mono)
+        # self.image.fill(1)
         self.painter = QPainter(self)
+        # self.painter.begin(self)
+        # self.painter.fillRect(self.rect(), QBrush(QColor(255, 255, 255)))
+        # self.painter.end()
         self.show()
         # self.painter.setRenderHint(QPainter.Antialiasing, False)
 
     def iterate(self):
-        for i in range(0, 100):
-        # for i in range(0, 1):
+        # for i in range(0, 100):
+        for i in range(0, 1):
             rule = self.fractal.get_rule()
             x = self.x * rule['a'] + self.y * rule['b'] + rule['tx']
             y = self.x * rule['c'] + self.y * rule['d'] + rule['ty']
             self.x = x
             self.y = y
-            self.plot()
-        QTimer.singleShot(1, self.iterate)
+            self.plot(i)
 
-    def plot(self):
-        x = int(self.x)
-        # x = int(self.x) * 350
-        y = int(self.y)
-        # y = int(self.y) * 350
-        self.image.setPixel(x, y, 0)
-        self.painter.drawPixmap(self.rect(), QPixmap(self.image))
+        QTimer.singleShot(100, self.iterate)
+
+    def plot(self, i):
+        # x = int(self.x)
+        x = int(self.x * 350) + int(self.width / 2)
+        # x = int(self.x * 350)
+        # y = int(self.y)
+        y = int(-self.y * 350) + self.height
+        # y = int(-self.y * 350)
+        # print(str(i) + ': (' + str(x) + ', ' + str(y) + ')')
+        self.painter.drawPoint(x, y)
+        # self.image.setPixel(x, y, 0)
+        # self.image.setPixel(200, 200, 0)
+        # self.painter.drawPoint(200, 200)
+        # self.image.setPixel(201, 200, 0)
+        # self.painter.drawPoint(201, 200)
+        # self.image.setPixel(202, 200, 0)
+        # self.painter.drawPoint(202, 200)
+        # self.image
+        # self.painter.drawPixmap(self.rect(), QPixmap(self.image))
 
     def paintEvent(self, event):
         self.painter.begin(self)
+        # self.painter.translate(self.width / 2, self.height / 2)
+        # self.painter.begin(self.image)
+        # self.image.fill(0)
+        self.painter.fillRect(self.rect(), QBrush(QColor(255, 255, 255)))
+        self.painter.setPen(QColor(0, 0, 0))
         self.iterate()
         # self.plot()
         self.painter.end()
+        # self.update()
         # self.painter.drawPixmap(self.rect(), QPixmap.fromImage(QImage('newton.png')))
         # img = QImage('newton.png')
         # i2 = QImage(400,400, QImage.Format_Mono)
